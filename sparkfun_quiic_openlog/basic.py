@@ -53,18 +53,18 @@ class Sparkfun_Qwiic_OpenLog:
         """
         self._bus_implementation = bus_implementation
         sleep(0.05)   # Wait for board to respond to I2C 
-        return _wait_init_good()
+        init_good = self._wait_init_good()
 
     def _initialize(self) -> bool:
         """Initialize the QOL"""
         self._write_register_byte(_QOL_INITIALIZE_REG, 0x00)
-        return _wait_cmd_success()
+        return self._wait_cmd_success()
 
     def _wait_init_good(self) -> bool:
         ready = False
         cnt = 10
         while cnt < 10:
-            ready = self._get_status() & (1 << _QOL_STATUS_SD_INIT_GOOD):
+            ready = self.get_status() & (1 << _QOL_STATUS_SD_INIT_GOOD)
             if ready: 
                 break
             sleep(0.05)
@@ -75,16 +75,12 @@ class Sparkfun_Qwiic_OpenLog:
         ready = 0
         cnt = 10
         while cnt < 10:
-            ready = self._get_status() & (1 << _QOL_STATUS_LAST_COMMAND_SUCCESS)
+            ready = self.get_status() & (1 << _QOL_STATUS_LAST_COMMAND_SUCCESS)
             if ready:
                 break
             sleep(0.05)
             cnt = cnt + 1
         return ready
-
-    def _get_status(self) -> int:
-        """Get the value from the status register in the device"""
-        return self._read_byte(_QOL_STATUS_REG)
 
     def _read_byte(self, register: int) -> int:
         """Read a byte register value and return it"""
@@ -95,6 +91,10 @@ class Sparkfun_Qwiic_OpenLog:
 
     def _write_register_byte(self, register: int, value: int) -> None:
         self._bus_implementation.write_register_byte(register, value)
+
+    def get_status(self) -> int:
+        """Get the value from the status register in the device"""
+        return self._read_byte(_QOL_STATUS_REG)
 
 
 class Sparkfun_Qwiic_OpenLog_I2C(Sparkfun_Qwiic_OpenLog):
